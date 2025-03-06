@@ -1,0 +1,15 @@
+Description: Removed privacy breach in docs.
+Author: Thomas Goirand <zigo@debian.org>
+Forwarded: no
+Last-Update: 2024-03-15
+
+--- networkx-3.2.1.orig/examples/external/force/force.html
++++ networkx-3.2.1/examples/external/force/force.html
+@@ -2,7 +2,6 @@
+ <html>
+   <head>
+     <title>Force-Directed Layout</title>
+-    <script type="text/javascript" src="https://d3js.org/d3.v4.min.js"></script>
+     <link type="text/css" rel="stylesheet" href="force/force.css" />
+   </head>
+   <body>

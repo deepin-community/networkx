@@ -1,0 +1,358 @@
+Description: remove doc examples that are doing network access
+Author: Thomas Goirand <zigo@debian.org>
+Forwarded: no
+Last-Update: 2024-04-29
+
+--- a/examples/graph/plot_football.py	2023-10-28 10:35:40.000000000 +0200
++++ /dev/null	2024-04-29 07:51:47.908104658 +0200
+@@ -1,44 +0,0 @@
+-"""
+-========
+-Football
+-========
+-
+-Load football network in GML format and compute some network statistics.
+-
+-Shows how to download GML graph in a zipped file, unpack it, and load
+-into a NetworkX graph.
+-
+-Requires Internet connection to download the URL
+-http://www-personal.umich.edu/~mejn/netdata/football.zip
+-"""
+-
+-import urllib.request
+-import io
+-import zipfile
+-
+-import matplotlib.pyplot as plt
+-import networkx as nx
+-
+-url = "http://www-personal.umich.edu/~mejn/netdata/football.zip"
+-
+-sock = urllib.request.urlopen(url)  # open URL
+-s = io.BytesIO(sock.read())  # read into BytesIO "file"
+-sock.close()
+-
+-zf = zipfile.ZipFile(s)  # zipfile object
+-txt = zf.read("football.txt").decode()  # read info file
+-gml = zf.read("football.gml").decode()  # read gml data
+-# throw away bogus first line with # from mejn files
+-gml = gml.split("\n")[1:]
+-G = nx.parse_gml(gml)  # parse gml data
+-
+-print(txt)
+-# print degree for each team - number of games
+-for n, d in G.degree():
+-    print(f"{n:20} {d:2}")
+-
+-options = {"node_color": "black", "node_size": 50, "linewidths": 0, "width": 0.1}
+-
+-pos = nx.spring_layout(G, seed=1969)  # Seed for reproducible layout
+-nx.draw(G, pos, **options)
+-plt.show()
+--- a/examples/geospatial/plot_lines.py	2023-10-28 10:35:40.000000000 +0200
++++ /dev/null	2024-04-29 07:51:47.908104658 +0200
+@@ -1,110 +0,0 @@
+-"""
+-==========================
+-Graphs from a set of lines
+-==========================
+-
+-This example shows how to build a graph from a set of geographic lines
+-(sometimes called "linestrings") using GeoPandas, momepy and alternatively
+-PySAL. We'll plot some rivers and streets, as well as their graphs formed
+-from the segments.
+-
+-There are generally two ways of creating graph object from line geometry.
+-Let's use an example of street network to illustrate both:
+-
+-The first way is a so-called primal approach, where each intersection is
+-a node and each linestring segment connecting two intersections is an edge.
+-
+-The second way is so-called dual approach, where each line is a node and
+-intersection topology is turned into edges. One of the options how this is
+-used for street network analysis is an angular analysis, where your routing
+-is weighted via angles between street segments on intersections.
+-
+-We will use GeoPandas to read spatial data and momepy to generate first
+-primal graph and then dual graph. Furthermore, we will use PySAL to
+-illustrate an alternative way of creating raw dual graph.
+-"""
+-
+-
+-import geopandas
+-import matplotlib.pyplot as plt
+-import momepy
+-import networkx as nx
+-from contextily import add_basemap
+-from libpysal import weights
+-
+-# %%
+-# Read in example river geometry from GeoJSON. Source of example data:
+-# https://doi.org/10.3390/data5010008 (Nicolas Cadieux)
+-rivers = geopandas.read_file("rivers.geojson")
+-
+-# %%
+-# Construct the primal graph. momepy automatically preserves all attributes
+-# from GeoDataFrame and stores then as edge attributes.
+-G = momepy.gdf_to_nx(rivers, approach="primal")
+-
+-# %%
+-# Each node is encoded by its coordinates, which allows us to use them
+-# in plotting.
+-positions = {n: [n[0], n[1]] for n in list(G.nodes)}
+-
+-# Plot
+-f, ax = plt.subplots(1, 2, figsize=(12, 6), sharex=True, sharey=True)
+-rivers.plot(color="k", ax=ax[0])
+-for i, facet in enumerate(ax):
+-    facet.set_title(("Rivers", "Graph")[i])
+-    facet.axis("off")
+-nx.draw(G, positions, ax=ax[1], node_size=5)
+-
+-# %%
+-# Once we finish graph-based analysis, we can convert graph back
+-# to GeoDataFrames. momepy can return nodes as point geometry,
+-# edges as original line geometry and W object, which is PySAL
+-# spatial weights matrix encoding original graph so we can use
+-# it with node GeoDataFrame.
+-nodes, edges, W = momepy.nx_to_gdf(G, spatial_weights=True)
+-
+-
+-# Read in example street network from GeoPackage
+-streets = geopandas.read_file(momepy.datasets.get_path("bubenec"), layer="streets")
+-
+-# Construct the primal graph
+-G_primal = momepy.gdf_to_nx(streets, approach="primal")
+-
+-# Plot
+-f, ax = plt.subplots(1, 2, figsize=(12, 6), sharex=True, sharey=True)
+-streets.plot(color="k", ax=ax[0])
+-for i, facet in enumerate(ax):
+-    facet.set_title(("Streets", "Graph")[i])
+-    facet.axis("off")
+-    add_basemap(facet)
+-nx.draw(
+-    G_primal, {n: [n[0], n[1]] for n in list(G_primal.nodes)}, ax=ax[1], node_size=50
+-)
+-
+-# %%
+-# Construct the dual graph. momepy will store row attributes as node attributes and
+-# automatically measures angle between lines.
+-G_dual = momepy.gdf_to_nx(streets, approach="dual")
+-
+-# Plot
+-f, ax = plt.subplots(1, 2, figsize=(12, 6), sharex=True, sharey=True)
+-streets.plot(color="k", ax=ax[0])
+-for i, facet in enumerate(ax):
+-    facet.set_title(("Streets", "Graph")[i])
+-    facet.axis("off")
+-    add_basemap(facet)
+-nx.draw(G_dual, {n: [n[0], n[1]] for n in list(G_dual.nodes)}, ax=ax[1], node_size=50)
+-plt.show()
+-
+-# Convert dual graph back to GeoDataFrame. Returns only original line geometry.
+-lines = momepy.nx_to_gdf(G_dual)
+-
+-# %%
+-# We can also construct the dual graph using PySAL. Note that it only encodes
+-# relationship between geometries and do not any store attributes. However, it is
+-# significantly faster than momepy.gdf_to_nx().
+-# Create PySAL weights (graph).
+-W = weights.Queen.from_dataframe(streets)
+-
+-# Convert the graph to networkx
+-G_dual = W.to_networkx()
+--- a/examples/geospatial/plot_points.py	2023-10-28 10:35:40.000000000 +0200
++++ /dev/null	2024-04-29 07:51:47.908104658 +0200
+@@ -1,59 +0,0 @@
+-"""
+-=============================
+-Graphs from geographic points
+-=============================
+-
+-This example shows how to build a graph from a set of points
+-using PySAL and geopandas. In this example, we'll use the famous
+-set of cholera cases at the Broad Street Pump, recorded by John Snow in 1853.
+-The methods shown here can also work directly with polygonal data using their
+-centroids as representative points. 
+-"""
+-
+-from libpysal import weights, examples
+-from contextily import add_basemap
+-import matplotlib.pyplot as plt
+-import networkx as nx
+-import numpy as np
+-import geopandas
+-
+-# read in example data from a geopackage file. Geopackages
+-# are a format for storing geographic data that is backed
+-# by sqlite. geopandas reads data relying on the fiona package,
+-# providing a high-level pandas-style interface to geographic data.
+-cases = geopandas.read_file("cholera_cases.gpkg")
+-
+-# construct the array of coordinates for the centroid
+-coordinates = np.column_stack((cases.geometry.x, cases.geometry.y))
+-
+-# construct two different kinds of graphs:
+-
+-## 3-nearest neighbor graph, meaning that points are connected
+-## to the three closest other points. This means every point
+-## will have exactly three neighbors.
+-knn3 = weights.KNN.from_dataframe(cases, k=3)
+-
+-## The 50-meter distance band graph will connect all pairs of points
+-## that are within 50 meters from one another. This means that points
+-## may have different numbers of neighbors.
+-dist = weights.DistanceBand.from_array(coordinates, threshold=50)
+-
+-# Then, we can convert the graph to networkx object using the
+-# .to_networkx() method.
+-knn_graph = knn3.to_networkx()
+-dist_graph = dist.to_networkx()
+-
+-# To plot with networkx, we need to merge the nodes back to
+-# their positions in order to plot in networkx
+-positions = dict(zip(knn_graph.nodes, coordinates))
+-
+-# plot with a nice basemap
+-f, ax = plt.subplots(1, 2, figsize=(8, 4))
+-for i, facet in enumerate(ax):
+-    cases.plot(marker=".", color="orangered", ax=facet)
+-    add_basemap(facet)
+-    facet.set_title(("KNN-3", "50-meter Distance Band")[i])
+-    facet.axis("off")
+-nx.draw(knn_graph, positions, ax=ax[0], node_size=5, node_color="b")
+-nx.draw(dist_graph, positions, ax=ax[1], node_size=5, node_color="b")
+-plt.show()
+--- a/examples/geospatial/plot_delaunay.py	2023-10-28 10:35:40.000000000 +0200
++++ /dev/null	2024-04-29 07:51:47.908104658 +0200
+@@ -1,72 +0,0 @@
+-"""
+-======================================
+-Delaunay graphs from geographic points
+-======================================
+-
+-This example shows how to build a delaunay graph (plus its dual,
+-the set of Voronoi polygons) from a set of points.
+-For this, we will use the set of cholera cases at the Broad Street Pump, 
+-recorded by John Snow in 1853. The methods shown here can also work 
+-directly with polygonal data using their centroids as representative points. 
+-"""
+-
+-from libpysal import weights, examples
+-from libpysal.cg import voronoi_frames
+-from contextily import add_basemap
+-import matplotlib.pyplot as plt
+-import networkx as nx
+-import numpy as np
+-import geopandas
+-
+-# read in example data from a geopackage file. Geopackages
+-# are a format for storing geographic data that is backed
+-# by sqlite. geopandas reads data relying on the fiona package,
+-# providing a high-level pandas-style interface to geographic data.
+-# Many different kinds of geographic data formats can be read by geopandas.
+-cases = geopandas.read_file("cholera_cases.gpkg")
+-
+-# In order for networkx to plot the nodes of our graph correctly, we
+-# need to construct the array of coordinates for each point in our dataset.
+-# To get this as a numpy array, we extract the x and y coordinates from the
+-# geometry column.
+-coordinates = np.column_stack((cases.geometry.x, cases.geometry.y))
+-
+-# While we could simply present the Delaunay graph directly, it is useful to
+-# visualize the Delaunay graph alongside the Voronoi diagram. This is because
+-# the two are intrinsically linked: the adjacency graph of the Voronoi diagram
+-# is the Delaunay graph for the set of generator points! Put simply, this means
+-# we can build the Voronoi diagram (relying on scipy.spatial for the underlying
+-# computations), and then convert these polygons quickly into the Delaunay graph.
+-# Be careful, though; our algorithm, by default, will clip the voronoi diagram to
+-# the bounding box of the point pattern. This is controlled by the "clip" argument.
+-cells, generators = voronoi_frames(coordinates, clip="convex hull")
+-
+-# With the voronoi polygons, we can construct the adjacency graph between them using
+-# "Rook" contiguity. This represents voronoi cells as being adjacent if they share
+-# an edge/face. This is an analogue to the "von Neuman" neighborhood, or the 4 cardinal
+-# neighbors in a regular grid. The name comes from the directions a Rook piece can move
+-# on a chessboard.
+-delaunay = weights.Rook.from_dataframe(cells)
+-
+-# Once the graph is built, we can convert the graphs to networkx objects using the
+-# relevant method.
+-delaunay_graph = delaunay.to_networkx()
+-
+-# To plot with networkx, we need to merge the nodes back to
+-# their positions in order to plot in networkx
+-positions = dict(zip(delaunay_graph.nodes, coordinates))
+-
+-# Now, we can plot with a nice basemap.
+-ax = cells.plot(facecolor="lightblue", alpha=0.50, edgecolor="cornsilk", linewidth=2)
+-add_basemap(ax)
+-ax.axis("off")
+-nx.draw(
+-    delaunay_graph,
+-    positions,
+-    ax=ax,
+-    node_size=2,
+-    node_color="k",
+-    edge_color="k",
+-    alpha=0.8,
+-)
+-plt.show()
+--- a/examples/geospatial/plot_osmnx.py	2023-10-28 10:35:40.000000000 +0200
++++ /dev/null	2024-04-29 07:51:47.908104658 +0200
+@@ -1,53 +0,0 @@
+-"""
+-========================
+-OpenStreetMap with OSMnx
+-========================
+-
+-This example shows how to use OSMnx to download and model a street network
+-from OpenStreetMap, visualize centrality, then save the graph as a GeoPackage,
+-or GraphML file.
+-
+-OSMnx is a Python package to download, model, analyze, and visualize street
+-networks and other geospatial features from OpenStreetMap. You can download
+-and model walking, driving, or biking networks with a single line of code then
+-easily analyze and visualize them. You can just as easily work with urban
+-amenities/points of interest, building footprints, transit stops, elevation
+-data, street orientations, speed/travel time, and routing.
+-
+-See https://osmnx.readthedocs.io for the OSMnx documentation.
+-See https://github.com/gboeing/osmnx-examples for the OSMnx Examples gallery.
+-"""
+-
+-import networkx as nx
+-import osmnx as ox
+-
+-ox.settings.use_cache = True
+-
+-# download street network data from OSM and construct a MultiDiGraph model
+-G = ox.graph.graph_from_point((37.79, -122.41), dist=750, network_type="drive")
+-
+-# impute edge (driving) speeds and calculate edge travel times
+-G = ox.speed.add_edge_speeds(G)
+-G = ox.speed.add_edge_travel_times(G)
+-
+-# you can convert MultiDiGraph to/from GeoPandas GeoDataFrames
+-gdf_nodes, gdf_edges = ox.utils_graph.graph_to_gdfs(G)
+-G = ox.utils_graph.graph_from_gdfs(gdf_nodes, gdf_edges, graph_attrs=G.graph)
+-
+-# convert MultiDiGraph to DiGraph to use nx.betweenness_centrality function
+-# choose between parallel edges by minimizing travel_time attribute value
+-D = ox.utils_graph.get_digraph(G, weight="travel_time")
+-
+-# calculate node betweenness centrality, weighted by travel time
+-bc = nx.betweenness_centrality(D, weight="travel_time", normalized=True)
+-nx.set_node_attributes(G, values=bc, name="bc")
+-
+-# plot the graph, coloring nodes by betweenness centrality
+-nc = ox.plot.get_node_colors_by_attr(G, "bc", cmap="plasma")
+-fig, ax = ox.plot.plot_graph(
+-    G, bgcolor="k", node_color=nc, node_size=50, edge_linewidth=2, edge_color="#333333"
+-)
+-
+-# save graph as a geopackage or graphml file
+-ox.io.save_graph_geopackage(G, filepath="./graph.gpkg")
+-ox.io.save_graphml(G, filepath="./graph.graphml")

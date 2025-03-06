@@ -1,0 +1,7 @@
+#!/bin/sh
+
+set -e
+
+for pyvers in $(py3versions 2>/dev/null) ; do
+	python$pyvers -m pytest networkx/tests --verbosity=2 -k 'not TestStronglyConnected.test_connected_raise and not TestAGraph.test_no_warnings_raised'
+done

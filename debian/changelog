@@ -1,3 +1,64 @@
+networkx (3.2.1-5) unstable; urgency=medium
+
+  * Removed python3-pkg-resources from depends (Closes: #1083502).
+  * Removed obsolete Breaks:.
+
+ -- Thomas Goirand <zigo@debian.org>  Tue, 26 Nov 2024 10:24:26 +0100
+
+networkx (3.2.1-4) unstable; urgency=medium
+
+  * Add fix-postinst-warning.patch (Closes: #1060444).
+
+ -- Thomas Goirand <zigo@debian.org>  Mon, 06 May 2024 13:31:48 +0200
+
+networkx (3.2.1-3) unstable; urgency=medium
+
+  * Add http{s,}_proxy=127.0.0.1:9 when building sphinx doc.
+  * Set export RES_OPTIONS=attempts:0 in d/rules to avoid network access.
+  * Add remove-network-accessing-examples.patch.
+
+ -- Thomas Goirand <zigo@debian.org>  Mon, 29 Apr 2024 16:05:51 +0200
+
+networkx (3.2.1-2) unstable; urgency=medium
+
+  * Add >= 4.10 to python3-libpysal build-depends.
+  * Uploading to unstable.
+
+ -- Thomas Goirand <zigo@debian.org>  Tue, 09 Apr 2024 15:47:14 +0200
+
+networkx (3.2.1-1) experimental; urgency=medium
+
+  * Adopt the package in the OpenStack team (Closes: #1065198):
+    - Switch to git tag based workflow.
+    - Set Maintainer: Debian OpenStack and myself as uploader.
+    - Fix VCS URLs.
+  * New upstream release (Closes: #1064503).
+  * Ran wrap-and-sort -bastk.
+  * Fix (build-)depends for this release.
+  * Add upstream VCS in d/rules and build-depends on openstack-pkg-tools.
+  * Build-depends on pybuild-plugin-pyproject.
+  * Blacklist broken warning tests:
+    - TestStronglyConnected.test_connected_raise
+    - TestAGraph.test_no_warnings_raised
+  * Define SETUPTOOLS_SCM_PRETEND_VERSION.
+  * Let pybuild install the package, stop doing it by hand.
+  * Add removed-privacy-breach-in-docs.patch.
+  * Build the sphinx doc as html.
+  * Cleans correctly.
+  * Add autopkgtest.
+
+ -- Thomas Goirand <zigo@debian.org>  Fri, 15 Mar 2024 08:47:04 +0100
+
+networkx (2.8.8-2) unstable; urgency=medium
+
+  [ Debian Janitor ]
+  * Trim trailing whitespace.
+
+  [ Sandro Tosi ]
+  * orphan
+
+ -- Sandro Tosi <morph@debian.org>  Fri, 01 Mar 2024 15:05:38 -0500
+
 networkx (2.8.8-1) unstable; urgency=medium
 
   * New upstream release; Closes: #1025052
@@ -49,7 +110,7 @@ networkx (2.5+ds-2) unstable; urgency=medium
     - extend packaging copyright years
   * debian/patches/2bfdee687d0db533555384f92ce3670d47c45aec.patch
     - fix a failure in botch tests; Closes: #969756
-  
+
   [ Debian Janitor ]
   * Trim trailing whitespace.
   * Use secure URI in Homepage field.
