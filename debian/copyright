@@ -219,7 +219,7 @@ Files: networkx/generators/harary_graph.py
 Copyright: Copyright (C) 2018-2019 by Weisheng Si <w.si@westernsydney.edu.au>
 License: BSD-3-clause
 
-Files: networkx/generators/joint_degree_seq.py 
+Files: networkx/generators/joint_degree_seq.py
 Copyright: Copyright (C) 2016-2019 by Minas Gjoka Balint Tillman
 License: BSD-3-clause
 

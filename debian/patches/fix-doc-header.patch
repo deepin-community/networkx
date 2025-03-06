@@ -1,0 +1,27 @@
+Description: Fix doc header
+ This patch removes the theme-switcher that is making the doc build fail,
+ plus some more that are privacy-breach.
+Author: Thomas Goirand <zigo@debian.org>
+Forwarded: not-needed
+Last-Update: 2024-03-15
+
+--- networkx-3.2.1.orig/doc/conf.py
++++ networkx-3.2.1/doc/conf.py
+@@ -140,15 +140,9 @@ html_theme_options = {
+         },
+     ],
+     "external_links": [{"name": "Guides", "url": "https://networkx.org/nx-guides/"}],
+-    "navbar_end": ["theme-switcher", "navbar-icon-links", "version-switcher"],
+-    "secondary_sidebar_items": ["page-toc", "edit-this-page"],
++    "navbar_end": ["navbar-icon-links"],
++    "secondary_sidebar_items": ["page-toc"],
+     "header_links_before_dropdown": 7,
+-    "switcher": {
+-        "json_url": (
+-            "https://networkx.org/documentation/latest/_static/version_switcher.json"
+-        ),
+-        "version_match": "latest" if "dev" in version else version,
+-    },
+     "show_version_warning_banner": True,
+ }
+ html_sidebars = {

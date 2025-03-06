@@ -1,0 +1,4 @@
+removed-privacy-breach-in-docs.patch
+fix-doc-header.patch
+remove-network-accessing-examples.patch
+fix-postinst-warning.patch
